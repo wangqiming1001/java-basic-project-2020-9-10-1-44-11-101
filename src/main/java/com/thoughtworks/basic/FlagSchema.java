@@ -21,4 +21,9 @@ public class FlagSchema {
 	public Object getType(){
 	    return type;
 	}
+
+	public String getFlag() {
+		return flag;
+	}
+	
 }

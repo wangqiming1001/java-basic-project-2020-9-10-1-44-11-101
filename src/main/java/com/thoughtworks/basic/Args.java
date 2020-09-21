@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 public class Args {
   
 	private String args;
+	private List<Arg> argList;
+	
 	private Schema schema;
 
     public Args(String argsTest, Schema schema) {
@@ -36,22 +38,49 @@ public class Args {
     }
 
 	public Object getValueOf(String flag) {
-		List<KeyAndValuePair> KeyAndValuePairs = scan();
-		Object value =  KeyAndValuePairs.stream()
-              .filter(keyValue -> flag.equals(keyValue.getKey()))
-              .findFirst()
-              .map(KeyAndValuePair::getValue).orElse(null);
-
+		Object value = getValueOfChar(flag);
 		Object type = schema.getTypeOf(flag);
 		//强制类型转换
 		//如果为boolean型
 		if(type.equals(Boolean.TYPE)){
 			value = Boolean.parseBoolean(value.toString());
-		}
-		//如果为整型
-		if(type.equals(Integer.TYPE)){
+		} else if(type.equals(Integer.TYPE)){
+			//如果为整型
 			value = Integer.parseInt(value.toString());
+		} else if(type instanceof java.lang.String){
+			//如果为字符串
+			value = value.toString();
+		}else {
+			throw new SchemaExcpetion("输入信息格式错误，请核实后重新输入");
 		}
+		String checkValue = value.toString();
+		Arg arg = new Arg(flag,checkValue);
+		try {
+			checkFlag(argList,arg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return value;
+	}
+	
+	public void checkFlag(List<Arg> args,Arg arg) throws Exception {
+        for(Arg a : args){
+            if(arg.getFlag().equals(a.getFlag())){
+            	throw new SchemaExcpetion("输入flg重复，请核实");
+            }
+        }
+	}
+	
+	
+	public Object getValueOfChar(String flag) {
+		List<KeyAndValuePair> KeyAndValuePairs = scan();
+		if(ConstantCodeAndValue.CODE_VALUE_NULL.equalsIgnoreCase(flag)) {
+			throw new SchemaExcpetion("输入信息格式错误，请核实后重新输入");
+		}
+		Object value =  KeyAndValuePairs.stream()
+              .filter(keyValue -> flag.equals(keyValue.getKey()))
+              .findFirst()
+              .map(KeyAndValuePair::getValue).orElse(null);
 		return value;
 	}
 }
